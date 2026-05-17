@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.workflow.WfTransitionMapper">
+
+    <resultMap type="WfTransition" id="WfTransitionResult">
+        <id     property="transitionId"    column="transition_id"    />
+        <result property="workflowId"      column="workflow_id"      />
+        <result property="fromNodeKey"     column="from_node_key"    />
+        <result property="toNodeKey"       column="to_node_key"      />
+        <result property="action"          column="action"           />
+        <result property="transitionName"  column="transition_name"  />
+        <result property="conditionExpr"   column="condition_expr"   />
+        <result property="permission"      column="permission"       />
+        <result property="orderNum"        column="order_num"        />
+    </resultMap>
+
+    <sql id="selectWfTransitionVo">
+        select transition_id, workflow_id, from_node_key, to_node_key,
+               action, transition_name, condition_expr, permission, order_num
+        from wf_transition
+    </sql>
+
+    <select id="selectTransitionById" parameterType="Long" resultMap="WfTransitionResult">
+        <include refid="selectWfTransitionVo"/>
+        where transition_id = #{transitionId}
+    </select>
+
+    <select id="selectTransitionsByWorkflowId" parameterType="Long" resultMap="WfTransitionResult">
+        <include refid="selectWfTransitionVo"/>
+        where workflow_id = #{workflowId}
+        order by order_num
+    </select>
+
+    <select id="selectTransitionsByFromNode" resultMap="WfTransitionResult">
+        <include refid="selectWfTransitionVo"/>
+        where workflow_id = #{workflowId} and from_node_key = #{fromNodeKey}
+        order by order_num
+    </select>
+
+    <insert id="insertTransition" parameterType="WfTransition" useGeneratedKeys="true" keyProperty="transitionId">
+        insert into wf_transition
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workflowId != null">workflow_id,</if>
+            <if test="fromNodeKey != null and fromNodeKey != ''">from_node_key,</if>
+            <if test="toNodeKey != null and toNodeKey != ''">to_node_key,</if>
+            <if test="action != null and action != ''">action,</if>
+            <if test="transitionName != null and transitionName != ''">transition_name,</if>
+            <if test="conditionExpr != null and conditionExpr != ''">condition_expr,</if>
+            <if test="permission != null and permission != ''">permission,</if>
+            order_num,
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workflowId != null">#{workflowId},</if>
+            <if test="fromNodeKey != null and fromNodeKey != ''">#{fromNodeKey},</if>
+            <if test="toNodeKey != null and toNodeKey != ''">#{toNodeKey},</if>
+            <if test="action != null and action != ''">#{action},</if>
+            <if test="transitionName != null and transitionName != ''">#{transitionName},</if>
+            <if test="conditionExpr != null and conditionExpr != ''">#{conditionExpr},</if>
+            <if test="permission != null and permission != ''">#{permission},</if>
+            #{orderNum},
+        </trim>
+    </insert>
+
+    <insert id="insertTransitions" parameterType="java.util.List">
+        insert into wf_transition (workflow_id, from_node_key, to_node_key, action,
+                                   transition_name, condition_expr, permission, order_num)
+        values
+        <foreach item="item" collection="list" separator=",">
+            (#{item.workflowId}, #{item.fromNodeKey}, #{item.toNodeKey}, #{item.action},
+             #{item.transitionName}, #{item.conditionExpr}, #{item.permission}, #{item.orderNum})
+        </foreach>
+    </insert>
+
+    <update id="updateTransition" parameterType="WfTransition">
+        update wf_transition
+        <set>
+            <if test="workflowId != null">workflow_id = #{workflowId},</if>
+            <if test="fromNodeKey != null and fromNodeKey != ''">from_node_key = #{fromNodeKey},</if>
+            <if test="toNodeKey != null and toNodeKey != ''">to_node_key = #{toNodeKey},</if>
+            <if test="action != null and action != ''">action = #{action},</if>
+            <if test="transitionName != null and transitionName != ''">transition_name = #{transitionName},</if>
+            <if test="conditionExpr != null">condition_expr = #{conditionExpr},</if>
+            <if test="permission != null and permission != ''">permission = #{permission},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+        </set>
+        where transition_id = #{transitionId}
+    </update>
+
+    <delete id="deleteTransitionById" parameterType="Long">
+        delete from wf_transition where transition_id = #{transitionId}
+    </delete>
+
+    <delete id="deleteTransitionsByWorkflowId" parameterType="Long">
+        delete from wf_transition where workflow_id = #{workflowId}
+    </delete>
+
+</mapper>

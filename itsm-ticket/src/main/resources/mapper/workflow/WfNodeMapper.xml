@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.workflow.WfNodeMapper">
+
+    <resultMap type="WfNode" id="WfNodeResult">
+        <id     property="nodeId"        column="node_id"        />
+        <result property="workflowId"    column="workflow_id"    />
+        <result property="nodeKey"       column="node_key"       />
+        <result property="nodeName"      column="node_name"      />
+        <result property="nodeType"      column="node_type"      />
+        <result property="assigneeType"  column="assignee_type"  />
+        <result property="assigneeValue" column="assignee_value" />
+        <result property="positionX"     column="position_x"     />
+        <result property="positionY"     column="position_y"     />
+        <result property="orderNum"      column="order_num"      />
+    </resultMap>
+
+    <sql id="selectWfNodeVo">
+        select node_id, workflow_id, node_key, node_name, node_type,
+               assignee_type, assignee_value, position_x, position_y, order_num
+        from wf_node
+    </sql>
+
+    <select id="selectNodeById" parameterType="Long" resultMap="WfNodeResult">
+        <include refid="selectWfNodeVo"/>
+        where node_id = #{nodeId}
+    </select>
+
+    <select id="selectNodesByWorkflowId" parameterType="Long" resultMap="WfNodeResult">
+        <include refid="selectWfNodeVo"/>
+        where workflow_id = #{workflowId}
+        order by order_num
+    </select>
+
+    <select id="selectNodeByWorkflowIdAndNodeKey" resultMap="WfNodeResult">
+        <include refid="selectWfNodeVo"/>
+        where workflow_id = #{workflowId} and node_key = #{nodeKey}
+    </select>
+
+    <insert id="insertNode" parameterType="WfNode" useGeneratedKeys="true" keyProperty="nodeId">
+        insert into wf_node
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workflowId != null">workflow_id,</if>
+            <if test="nodeKey != null and nodeKey != ''">node_key,</if>
+            <if test="nodeName != null and nodeName != ''">node_name,</if>
+            <if test="nodeType != null and nodeType != ''">node_type,</if>
+            <if test="assigneeType != null and assigneeType != ''">assignee_type,</if>
+            <if test="assigneeValue != null and assigneeValue != ''">assignee_value,</if>
+            <if test="positionX != null">position_x,</if>
+            <if test="positionY != null">position_y,</if>
+            order_num,
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workflowId != null">#{workflowId},</if>
+            <if test="nodeKey != null and nodeKey != ''">#{nodeKey},</if>
+            <if test="nodeName != null and nodeName != ''">#{nodeName},</if>
+            <if test="nodeType != null and nodeType != ''">#{nodeType},</if>
+            <if test="assigneeType != null and assigneeType != ''">#{assigneeType},</if>
+            <if test="assigneeValue != null and assigneeValue != ''">#{assigneeValue},</if>
+            <if test="positionX != null">#{positionX},</if>
+            <if test="positionY != null">#{positionY},</if>
+            #{orderNum},
+        </trim>
+    </insert>
+
+    <insert id="insertNodes" parameterType="java.util.List">
+        insert into wf_node (workflow_id, node_key, node_name, node_type,
+                             assignee_type, assignee_value, position_x, position_y, order_num)
+        values
+        <foreach item="item" collection="list" separator=",">
+            (#{item.workflowId}, #{item.nodeKey}, #{item.nodeName}, #{item.nodeType},
+             #{item.assigneeType}, #{item.assigneeValue}, #{item.positionX}, #{item.positionY}, #{item.orderNum})
+        </foreach>
+    </insert>
+
+    <update id="updateNode" parameterType="WfNode">
+        update wf_node
+        <set>
+            <if test="workflowId != null">workflow_id = #{workflowId},</if>
+            <if test="nodeKey != null and nodeKey != ''">node_key = #{nodeKey},</if>
+            <if test="nodeName != null and nodeName != ''">node_name = #{nodeName},</if>
+            <if test="nodeType != null and nodeType != ''">node_type = #{nodeType},</if>
+            <if test="assigneeType != null and assigneeType != ''">assignee_type = #{assigneeType},</if>
+            <if test="assigneeValue != null and assigneeValue != ''">assignee_value = #{assigneeValue},</if>
+            <if test="positionX != null">position_x = #{positionX},</if>
+            <if test="positionY != null">position_y = #{positionY},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+        </set>
+        where node_id = #{nodeId}
+    </update>
+
+    <delete id="deleteNodeById" parameterType="Long">
+        delete from wf_node where node_id = #{nodeId}
+    </delete>
+
+    <delete id="deleteNodesByWorkflowId" parameterType="Long">
+        delete from wf_node where workflow_id = #{workflowId}
+    </delete>
+
+</mapper>

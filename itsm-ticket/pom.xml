@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>itsm</artifactId>
+        <groupId>com.itsm</groupId>
+        <version>3.9.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>itsm-ticket</artifactId>
+
+    <description>
+        IT运维工单管理系统核心模块
+    </description>
+
+    <dependencies>
+
+        <!-- RuoYi通用工具 -->
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-common</artifactId>
+        </dependency>
+
+        <!-- RuoYi系统模块（用户、部门、字典等） -->
+        <dependency>
+            <groupId>com.itsm</groupId>
+            <artifactId>itsm-system</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

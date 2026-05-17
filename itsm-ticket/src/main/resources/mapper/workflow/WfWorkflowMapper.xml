@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.workflow.WfWorkflowMapper">
+
+    <resultMap type="WfWorkflow" id="WfWorkflowResult">
+        <id     property="workflowId"    column="workflow_id"    />
+        <result property="workflowName"  column="workflow_name"  />
+        <result property="workflowKey"   column="workflow_key"   />
+        <result property="description"   column="description"    />
+        <result property="version"       column="version"        />
+        <result property="status"        column="status"         />
+        <result property="isDefault"     column="is_default"     />
+        <result property="delFlag"       column="del_flag"       />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"      column="update_by"      />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"        column="remark"         />
+    </resultMap>
+
+    <sql id="selectWfWorkflowVo">
+        select workflow_id, workflow_name, workflow_key, description, version, status, is_default, del_flag,
+               create_by, create_time, update_by, update_time, remark
+        from wf_workflow
+    </sql>
+
+    <select id="selectWorkflowById" parameterType="Long" resultMap="WfWorkflowResult">
+        <include refid="selectWfWorkflowVo"/>
+        where workflow_id = #{workflowId} and del_flag = '0'
+    </select>
+
+    <select id="selectWorkflowList" parameterType="WfWorkflow" resultMap="WfWorkflowResult">
+        <include refid="selectWfWorkflowVo"/>
+        <where>
+            del_flag = '0'
+            <if test="workflowName != null and workflowName != ''">
+                AND workflow_name like concat('%', #{workflowName}, '%')
+            </if>
+            <if test="workflowKey != null and workflowKey != ''">
+                AND workflow_key like concat('%', #{workflowKey}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="isDefault != null and isDefault != ''">
+                AND is_default = #{isDefault}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectWorkflowByKey" parameterType="String" resultMap="WfWorkflowResult">
+        <include refid="selectWfWorkflowVo"/>
+        where workflow_key = #{workflowKey} and del_flag = '0'
+    </select>
+
+    <select id="selectDefaultWorkflow" resultMap="WfWorkflowResult">
+        <include refid="selectWfWorkflowVo"/>
+        where is_default = '1' and status = '0' and del_flag = '0'
+    </select>
+
+    <insert id="insertWorkflow" parameterType="WfWorkflow" useGeneratedKeys="true" keyProperty="workflowId">
+        insert into wf_workflow (
+            <if test="workflowName != null and workflowName != ''">workflow_name,</if>
+            <if test="workflowKey != null and workflowKey != ''">workflow_key,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="version != null">version,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="isDefault != null and isDefault != ''">is_default,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            create_time
+        )values(
+            <if test="workflowName != null and workflowName != ''">#{workflowName},</if>
+            <if test="workflowKey != null and workflowKey != ''">#{workflowKey},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="version != null">#{version},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="isDefault != null and isDefault != ''">#{isDefault},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateWorkflow" parameterType="WfWorkflow">
+        update wf_workflow
+        <set>
+            <if test="workflowName != null and workflowName != ''">workflow_name = #{workflowName},</if>
+            <if test="workflowKey != null and workflowKey != ''">workflow_key = #{workflowKey},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="isDefault != null and isDefault != ''">is_default = #{isDefault},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </set>
+        where workflow_id = #{workflowId} and del_flag = '0'
+    </update>
+
+    <delete id="deleteWorkflowById" parameterType="Long">
+        update wf_workflow set del_flag = '2' where workflow_id = #{workflowId} and del_flag = '0'
+    </delete>
+
+    <delete id="deleteWorkflowByIds" parameterType="Long">
+        update wf_workflow set del_flag = '2' where del_flag = '0' and workflow_id in
+        <foreach item="workflowId" collection="array" open="(" separator="," close=")">
+            #{workflowId}
+        </foreach>
+    </delete>
+
+</mapper>

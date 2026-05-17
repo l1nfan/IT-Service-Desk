@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItTicketAttachmentMapper">
+
+    <resultMap type="ItTicketAttachment" id="ItTicketAttachmentResult">
+        <id     property="attachmentId" column="attachment_id" />
+        <result property="ticketId"     column="ticket_id"     />
+        <result property="fileName"     column="file_name"     />
+        <result property="filePath"     column="file_path"     />
+        <result property="fileSize"     column="file_size"     />
+        <result property="fileType"     column="file_type"     />
+        <result property="uploadBy"     column="upload_by"     />
+        <result property="uploadTime"   column="upload_time"   />
+        <result property="delFlag"      column="del_flag"      />
+    </resultMap>
+
+    <sql id="selectAttachmentVo">
+        select attachment_id, ticket_id, file_name, file_path, file_size, file_type, upload_by, upload_time, del_flag
+        from it_ticket_attachment
+    </sql>
+
+    <select id="selectAttachmentById" parameterType="Long" resultMap="ItTicketAttachmentResult">
+        <include refid="selectAttachmentVo"/>
+        where attachment_id = #{attachmentId} and del_flag = '0'
+    </select>
+
+    <select id="selectAttachmentList" parameterType="ItTicketAttachment" resultMap="ItTicketAttachmentResult">
+        <include refid="selectAttachmentVo"/>
+        <where>
+            del_flag = '0'
+            <if test="ticketId != null">
+                AND ticket_id = #{ticketId}
+            </if>
+            <if test="fileName != null and fileName != ''">
+                AND file_name like concat('%', #{fileName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAttachmentsByTicketId" parameterType="Long" resultMap="ItTicketAttachmentResult">
+        <include refid="selectAttachmentVo"/>
+        where ticket_id = #{ticketId} and del_flag = '0'
+        order by upload_time desc
+    </select>
+
+    <insert id="insertAttachment" parameterType="ItTicketAttachment" useGeneratedKeys="true" keyProperty="attachmentId">
+        insert into it_ticket_attachment (
+            <if test="ticketId != null">ticket_id,</if>
+            <if test="fileName != null and fileName != ''">file_name,</if>
+            <if test="filePath != null and filePath != ''">file_path,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="fileType != null and fileType != ''">file_type,</if>
+            <if test="uploadBy != null and uploadBy != ''">upload_by,</if>
+            upload_time
+        )values(
+            <if test="ticketId != null">#{ticketId},</if>
+            <if test="fileName != null and fileName != ''">#{fileName},</if>
+            <if test="filePath != null and filePath != ''">#{filePath},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="fileType != null and fileType != ''">#{fileType},</if>
+            <if test="uploadBy != null and uploadBy != ''">#{uploadBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <delete id="deleteAttachmentById" parameterType="Long">
+        update it_ticket_attachment set del_flag = '2' where attachment_id = #{attachmentId}
+    </delete>
+
+    <delete id="deleteAttachmentByIds" parameterType="Long">
+        update it_ticket_attachment set del_flag = '2' where attachment_id in
+        <foreach item="attachmentId" collection="array" open="(" separator="," close=")">
+            #{attachmentId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteAttachmentByTicketId" parameterType="Long">
+        update it_ticket_attachment set del_flag = '2' where ticket_id = #{ticketId}
+    </delete>
+
+</mapper>

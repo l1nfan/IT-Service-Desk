@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItTicketCategoryMapper">
+
+    <resultMap type="ItTicketCategory" id="ItTicketCategoryResult">
+        <id     property="categoryId"   column="category_id"   />
+        <result property="categoryName" column="category_name" />
+        <result property="parentId"     column="parent_id"     />
+        <result property="ancestors"    column="ancestors"     />
+        <result property="orderNum"     column="order_num"     />
+        <result property="workflowId"   column="workflow_id"   />
+        <result property="slaConfigId"  column="sla_config_id" />
+        <result property="icon"         column="icon"          />
+        <result property="status"       column="status"        />
+        <result property="delFlag"      column="del_flag"      />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"     />
+        <result property="updateTime"   column="update_time"   />
+        <result property="remark"       column="remark"        />
+    </resultMap>
+
+    <sql id="selectCategoryVo">
+        select category_id, category_name, parent_id, ancestors, order_num, workflow_id, sla_config_id, icon, status, del_flag, create_by, create_time, update_by, update_time, remark
+        from it_ticket_category
+    </sql>
+
+    <select id="selectCategoryById" parameterType="Long" resultMap="ItTicketCategoryResult">
+        <include refid="selectCategoryVo"/>
+        where category_id = #{categoryId} and del_flag = '0'
+    </select>
+
+    <select id="selectCategoryList" parameterType="ItTicketCategory" resultMap="ItTicketCategoryResult">
+        <include refid="selectCategoryVo"/>
+        <where>
+            del_flag = '0'
+            <if test="categoryName != null and categoryName != ''">
+                AND category_name like concat('%', #{categoryName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="parentId != null">
+                AND parent_id = #{parentId}
+            </if>
+        </where>
+        order by parent_id, order_num
+    </select>
+
+    <select id="checkCategoryNameUnique" parameterType="String" resultMap="ItTicketCategoryResult">
+        <include refid="selectCategoryVo"/>
+        where category_name = #{categoryName} and del_flag = '0' limit 1
+    </select>
+
+    <insert id="insertCategory" parameterType="ItTicketCategory" useGeneratedKeys="true" keyProperty="categoryId">
+        insert into it_ticket_category (
+            <if test="categoryName != null and categoryName != ''">category_name,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="ancestors != null and ancestors != ''">ancestors,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="workflowId != null">workflow_id,</if>
+            <if test="slaConfigId != null">sla_config_id,</if>
+            <if test="icon != null">icon,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+        )values(
+            <if test="categoryName != null and categoryName != ''">#{categoryName},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="ancestors != null and ancestors != ''">#{ancestors},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="workflowId != null">#{workflowId},</if>
+            <if test="slaConfigId != null">#{slaConfigId},</if>
+            <if test="icon != null">#{icon},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateCategory" parameterType="ItTicketCategory">
+        update it_ticket_category
+        <set>
+            <if test="categoryName != null and categoryName != ''">category_name = #{categoryName},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="workflowId != null">workflow_id = #{workflowId},</if>
+            <if test="slaConfigId != null">sla_config_id = #{slaConfigId},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </set>
+        where category_id = #{categoryId}
+    </update>
+
+    <delete id="deleteCategoryById" parameterType="Long">
+        update it_ticket_category set del_flag = '2' where category_id = #{categoryId}
+    </delete>
+
+    <delete id="deleteCategoryByIds" parameterType="Long">
+        update it_ticket_category set del_flag = '2' where category_id in
+        <foreach item="categoryId" collection="array" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItTicketMapper">
+
+    <resultMap type="ItTicket" id="ItTicketResult">
+        <id     property="ticketId"            column="ticket_id"             />
+        <result property="ticketNo"            column="ticket_no"             />
+        <result property="title"               column="title"                 />
+        <result property="description"         column="description"           />
+        <result property="categoryId"          column="category_id"           />
+        <result property="subCategoryId"       column="sub_category_id"       />
+        <result property="priority"            column="priority"              />
+        <result property="status"              column="status"                />
+        <result property="impactScope"         column="impact_scope"          />
+        <result property="source"              column="source"                />
+        <result property="workflowId"          column="workflow_id"           />
+        <result property="workflowInstanceId"  column="workflow_instance_id"  />
+        <result property="currentNode"         column="current_node"          />
+        <result property="creatorId"           column="creator_id"            />
+        <result property="creatorDeptId"       column="creator_dept_id"       />
+        <result property="assigneeId"          column="assignee_id"           />
+        <result property="assigneeDeptId"      column="assignee_dept_id"      />
+        <result property="approverId"          column="approver_id"           />
+        <result property="expectedResolveTime" column="expected_resolve_time" />
+        <result property="actualResolveTime"   column="actual_resolve_time"   />
+        <result property="resolvedBy"          column="resolved_by"           />
+        <result property="closedBy"            column="closed_by"             />
+        <result property="closeTime"           column="close_time"            />
+        <result property="totalHours"          column="total_hours"           />
+        <result property="delFlag"             column="del_flag"              />
+        <result property="createBy"            column="create_by"             />
+        <result property="createTime"          column="create_time"           />
+        <result property="updateBy"            column="update_by"             />
+        <result property="updateTime"          column="update_time"           />
+        <result property="remark"              column="remark"                />
+        <result property="categoryName"        column="category_name"         />
+        <result property="creatorName"         column="creator_name"          />
+        <result property="assigneeName"        column="assignee_name"         />
+    </resultMap>
+
+    <sql id="selectTicketVo">
+        select t.ticket_id, t.ticket_no, t.title, t.description, t.category_id, t.sub_category_id,
+               t.priority, t.status, t.impact_scope, t.source, t.workflow_id, t.workflow_instance_id,
+               t.current_node, t.creator_id, t.creator_dept_id, t.assignee_id, t.assignee_dept_id,
+               t.approver_id, t.expected_resolve_time, t.actual_resolve_time, t.resolved_by,
+               t.closed_by, t.close_time, t.total_hours, t.del_flag,
+               t.create_by, t.create_time, t.update_by, t.update_time, t.remark,
+               c.category_name,
+               cu.nick_name as creator_name,
+               au.nick_name as assignee_name
+        from it_ticket t
+            left join it_ticket_category c on t.category_id = c.category_id
+            left join sys_user cu on t.creator_id = cu.user_id
+            left join sys_user au on t.assignee_id = au.user_id
+    </sql>
+
+    <select id="selectTicketById" parameterType="Long" resultMap="ItTicketResult">
+        <include refid="selectTicketVo"/>
+        where t.ticket_id = #{ticketId} and t.del_flag = '0'
+    </select>
+
+    <select id="selectTicketList" parameterType="ItTicket" resultMap="ItTicketResult">
+        <include refid="selectTicketVo"/>
+        <where>
+            t.del_flag = '0'
+            <if test="ticketNo != null and ticketNo != ''">
+                AND t.ticket_no like concat('%', #{ticketNo}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND t.title like concat('%', #{title}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND t.category_id = #{categoryId}
+            </if>
+            <if test="priority != null">
+                AND t.priority = #{priority}
+            </if>
+            <if test="status != null and status != ''">
+                AND t.status = #{status}
+            </if>
+            <if test="source != null and source != ''">
+                AND t.source = #{source}
+            </if>
+            <if test="creatorId != null">
+                AND t.creator_id = #{creatorId}
+            </if>
+            <if test="assigneeId != null">
+                AND t.assignee_id = #{assigneeId}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(t.create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(t.create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+            ${params.dataScope}
+        </where>
+        order by t.create_time desc
+    </select>
+
+    <select id="checkTicketNoUnique" parameterType="String" resultMap="ItTicketResult">
+        <include refid="selectTicketVo"/>
+        where t.ticket_no = #{ticketNo} and t.del_flag = '0' limit 1
+    </select>
+
+    <insert id="insertTicket" parameterType="ItTicket" useGeneratedKeys="true" keyProperty="ticketId">
+        insert into it_ticket (
+            <if test="ticketNo != null and ticketNo != ''">ticket_no,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="description != null">description,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="subCategoryId != null">sub_category_id,</if>
+            <if test="priority != null">priority,</if>
+            <if test="status != null">status,</if>
+            <if test="impactScope != null">impact_scope,</if>
+            <if test="source != null">source,</if>
+            <if test="workflowId != null">workflow_id,</if>
+            <if test="workflowInstanceId != null">workflow_instance_id,</if>
+            <if test="currentNode != null and currentNode != ''">current_node,</if>
+            <if test="creatorId != null">creator_id,</if>
+            <if test="creatorDeptId != null">creator_dept_id,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+        )values(
+            <if test="ticketNo != null and ticketNo != ''">#{ticketNo},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="description != null">#{description},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="subCategoryId != null">#{subCategoryId},</if>
+            <if test="priority != null">#{priority},</if>
+            <if test="status != null">#{status},</if>
+            <if test="impactScope != null">#{impactScope},</if>
+            <if test="source != null">#{source},</if>
+            <if test="workflowId != null">#{workflowId},</if>
+            <if test="workflowInstanceId != null">#{workflowInstanceId},</if>
+            <if test="currentNode != null and currentNode != ''">#{currentNode},</if>
+            <if test="creatorId != null">#{creatorId},</if>
+            <if test="creatorDeptId != null">#{creatorDeptId},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null">#{remark},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTicket" parameterType="ItTicket">
+        update it_ticket
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="subCategoryId != null">sub_category_id = #{subCategoryId},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="impactScope != null">impact_scope = #{impactScope},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="assigneeId != null">assignee_id = #{assigneeId},</if>
+            <if test="assigneeDeptId != null">assignee_dept_id = #{assigneeDeptId},</if>
+            <if test="expectedResolveTime != null">expected_resolve_time = #{expectedResolveTime},</if>
+            <if test="workflowInstanceId != null">workflow_instance_id = #{workflowInstanceId},</if>
+            <if test="currentNode != null and currentNode != ''">current_node = #{currentNode},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </set>
+        where ticket_id = #{ticketId} and del_flag = '0'
+    </update>
+
+    <delete id="deleteTicketById" parameterType="Long">
+        update it_ticket set del_flag = '2' where ticket_id = #{ticketId} and del_flag = '0'
+    </delete>
+
+    <delete id="deleteTicketByIds" parameterType="Long">
+        update it_ticket set del_flag = '2' where del_flag = '0' and ticket_id in
+        <foreach item="ticketId" collection="array" open="(" separator="," close=")">
+            #{ticketId}
+        </foreach>
+    </delete>
+
+    <update id="assignTicket" parameterType="ItTicket">
+        update it_ticket
+        <set>
+            assignee_id = #{assigneeId},
+            <if test="assigneeDeptId != null">assignee_dept_id = #{assigneeDeptId},</if>
+            status = #{status},
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where ticket_id = #{ticketId} and del_flag = '0' and status = #{oldStatus}
+    </update>
+
+    <update id="approveTicket" parameterType="ItTicket">
+        update it_ticket
+        <set>
+            status = #{status},
+            approver_id = #{approverId},
+            <if test="remark != null">remark = #{remark},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where ticket_id = #{ticketId} and del_flag = '0' and status = #{oldStatus}
+    </update>
+
+    <update id="updateTicketStatus" parameterType="ItTicket">
+        update it_ticket
+        set status = #{status},
+            update_by = #{updateBy},
+            update_time = sysdate()
+        where ticket_id = #{ticketId} and del_flag = '0' and status = #{oldStatus}
+    </update>
+
+    <select id="countByCategoryId" parameterType="Long" resultType="int">
+        select count(*) from it_ticket where category_id = #{categoryId} and del_flag = '0'
+    </select>
+
+</mapper>

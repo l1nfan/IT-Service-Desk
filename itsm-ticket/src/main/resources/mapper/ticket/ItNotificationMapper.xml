@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItNotificationMapper">
+
+    <resultMap type="ItNotification" id="ItNotificationResult">
+        <id     property="notificationId"   column="notification_id"   />
+        <result property="title"            column="title"             />
+        <result property="content"          column="content"           />
+        <result property="notificationType" column="notification_type" />
+        <result property="businessId"       column="business_id"       />
+        <result property="businessType"     column="business_type"     />
+        <result property="senderId"         column="sender_id"         />
+        <result property="receiverId"       column="receiver_id"       />
+        <result property="isRead"           column="is_read"           />
+        <result property="readTime"         column="read_time"         />
+        <result property="sendStatus"       column="send_status"       />
+        <result property="sendTime"         column="send_time"         />
+        <result property="createTime"       column="create_time"       />
+    </resultMap>
+
+    <sql id="selectNotificationVo">
+        select notification_id, title, content, notification_type, business_id, business_type,
+               sender_id, receiver_id, is_read, read_time, send_status, send_time, create_time
+        from it_notification
+    </sql>
+
+    <select id="selectNotificationById" parameterType="Long" resultMap="ItNotificationResult">
+        <include refid="selectNotificationVo"/>
+        where notification_id = #{notificationId}
+    </select>
+
+    <select id="selectNotificationsByReceiverId" parameterType="Long" resultMap="ItNotificationResult">
+        <include refid="selectNotificationVo"/>
+        where receiver_id = #{receiverId}
+        order by create_time desc
+    </select>
+
+    <select id="selectUnreadCountByReceiverId" parameterType="Long" resultType="int">
+        select count(*) from it_notification where receiver_id = #{receiverId} and is_read = '0'
+    </select>
+
+    <insert id="insertNotification" parameterType="ItNotification" useGeneratedKeys="true" keyProperty="notificationId">
+        insert into it_notification (
+            <if test="title != null and title != ''">title,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="notificationType != null and notificationType != ''">notification_type,</if>
+            <if test="businessId != null">business_id,</if>
+            <if test="businessType != null and businessType != ''">business_type,</if>
+            <if test="senderId != null">sender_id,</if>
+            <if test="receiverId != null">receiver_id,</if>
+            <if test="isRead != null and isRead != ''">is_read,</if>
+            <if test="sendStatus != null and sendStatus != ''">send_status,</if>
+            <if test="sendTime != null">send_time,</if>
+            create_time
+        )values(
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="notificationType != null and notificationType != ''">#{notificationType},</if>
+            <if test="businessId != null">#{businessId},</if>
+            <if test="businessType != null and businessType != ''">#{businessType},</if>
+            <if test="senderId != null">#{senderId},</if>
+            <if test="receiverId != null">#{receiverId},</if>
+            <if test="isRead != null and isRead != ''">#{isRead},</if>
+            <if test="sendStatus != null and sendStatus != ''">#{sendStatus},</if>
+            <if test="sendTime != null">#{sendTime},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateNotification" parameterType="ItNotification">
+        update it_notification
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="notificationType != null and notificationType != ''">notification_type = #{notificationType},</if>
+            <if test="businessId != null">business_id = #{businessId},</if>
+            <if test="businessType != null and businessType != ''">business_type = #{businessType},</if>
+            <if test="senderId != null">sender_id = #{senderId},</if>
+            <if test="receiverId != null">receiver_id = #{receiverId},</if>
+            <if test="isRead != null and isRead != ''">is_read = #{isRead},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+            <if test="sendStatus != null and sendStatus != ''">send_status = #{sendStatus},</if>
+            <if test="sendTime != null">send_time = #{sendTime},</if>
+        </set>
+        where notification_id = #{notificationId}
+    </update>
+
+    <update id="updateNotificationStatus" parameterType="ItNotification">
+        update it_notification set send_status = #{sendStatus}, send_time = #{sendTime} where notification_id = #{notificationId}
+    </update>
+
+    <update id="markAsRead" parameterType="Long">
+        update it_notification set is_read = '1', read_time = now() where notification_id = #{notificationId} and is_read = '0'
+    </update>
+
+    <update id="markAllAsRead" parameterType="Long">
+        update it_notification set is_read = '1', read_time = now() where receiver_id = #{receiverId} and is_read = '0'
+    </update>
+
+    <select id="selectNotificationList" parameterType="ItNotification" resultMap="ItNotificationResult">
+        <include refid="selectNotificationVo"/>
+        <where>
+            receiver_id = #{receiverId}
+            <if test="notificationType != null and notificationType != ''">and notification_type = #{notificationType}</if>
+            <if test="isRead != null and isRead != ''">and is_read = #{isRead}</if>
+            <if test="businessType != null and businessType != ''">and business_type = #{businessType}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <delete id="deleteNotificationById" parameterType="Long">
+        delete from it_notification where notification_id = #{notificationId}
+    </delete>
+
+    <delete id="deleteNotificationByIds" parameterType="Long">
+        delete from it_notification where notification_id in
+        <foreach item="notificationId" collection="array" open="(" separator="," close=")">
+            #{notificationId}
+        </foreach>
+    </delete>
+
+</mapper>

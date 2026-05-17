@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItSlaConfigMapper">
+
+    <resultMap type="ItSlaConfig" id="ItSlaConfigResult">
+        <id     property="slaId"            column="sla_id"            />
+        <result property="slaName"          column="sla_name"          />
+        <result property="categoryId"       column="category_id"       />
+        <result property="priority"         column="priority"          />
+        <result property="responseTime"     column="response_time"     />
+        <result property="resolutionTime"   column="resolution_time"   />
+        <result property="warningThreshold" column="warning_threshold" />
+        <result property="status"           column="status"            />
+        <result property="delFlag"          column="del_flag"          />
+        <result property="createBy"         column="create_by"         />
+        <result property="createTime"       column="create_time"       />
+        <result property="updateBy"         column="update_by"         />
+        <result property="updateTime"       column="update_time"       />
+        <result property="remark"           column="remark"            />
+    </resultMap>
+
+    <sql id="selectSlaConfigVo">
+        select sla_id, sla_name, category_id, priority, response_time, resolution_time,
+               warning_threshold, status, del_flag, create_by, create_time, update_by, update_time, remark
+        from it_sla_config
+    </sql>
+
+    <select id="selectSlaConfigById" parameterType="Long" resultMap="ItSlaConfigResult">
+        <include refid="selectSlaConfigVo"/>
+        where sla_id = #{slaId} and del_flag = '0'
+    </select>
+
+    <select id="selectSlaConfigList" parameterType="ItSlaConfig" resultMap="ItSlaConfigResult">
+        <include refid="selectSlaConfigVo"/>
+        <where>
+            del_flag = '0'
+            <if test="categoryId != null">and category_id = #{categoryId}</if>
+            <if test="slaName != null and slaName != ''">and sla_name like concat('%', #{slaName}, '%')</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+            <if test="priority != null and priority != ''">and priority = #{priority}</if>
+        </where>
+        order by sla_id
+    </select>
+
+    <select id="selectSlaConfigByCategoryId" resultMap="ItSlaConfigResult">
+        <include refid="selectSlaConfigVo"/>
+        where category_id = #{categoryId} and status = '0' and del_flag = '0'
+        <if test="priority != null and priority != ''">and priority = #{priority}</if>
+        order by sla_id limit 1
+    </select>
+
+    <select id="selectSlaConfigByCategoryAndPriority" resultMap="ItSlaConfigResult">
+        <include refid="selectSlaConfigVo"/>
+        where category_id = #{categoryId}
+          and priority = #{priority}
+          and status = '0' and del_flag = '0'
+        order by sla_id limit 1
+    </select>
+
+    <insert id="insertSlaConfig" parameterType="ItSlaConfig" useGeneratedKeys="true" keyProperty="slaId">
+        insert into it_sla_config (
+            <if test="slaName != null and slaName != ''">sla_name,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="priority != null and priority != ''">priority,</if>
+            <if test="responseTime != null">response_time,</if>
+            <if test="resolutionTime != null">resolution_time,</if>
+            <if test="warningThreshold != null">warning_threshold,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            create_time
+        )values(
+            <if test="slaName != null and slaName != ''">#{slaName},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="priority != null and priority != ''">#{priority},</if>
+            <if test="responseTime != null">#{responseTime},</if>
+            <if test="resolutionTime != null">#{resolutionTime},</if>
+            <if test="warningThreshold != null">#{warningThreshold},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateSlaConfig" parameterType="ItSlaConfig">
+        update it_sla_config
+        <set>
+            <if test="slaName != null and slaName != ''">sla_name = #{slaName},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="responseTime != null">response_time = #{responseTime},</if>
+            <if test="resolutionTime != null">resolution_time = #{resolutionTime},</if>
+            <if test="warningThreshold != null">warning_threshold = #{warningThreshold},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </set>
+        where sla_id = #{slaId}
+    </update>
+
+    <delete id="deleteSlaConfigById" parameterType="Long">
+        update it_sla_config set del_flag = '2' where sla_id = #{slaId}
+    </delete>
+
+    <delete id="deleteSlaConfigByIds" parameterType="Long">
+        update it_sla_config set del_flag = '2' where sla_id in
+        <foreach item="slaId" collection="array" open="(" separator="," close=")">
+            #{slaId}
+        </foreach>
+    </delete>
+
+</mapper>

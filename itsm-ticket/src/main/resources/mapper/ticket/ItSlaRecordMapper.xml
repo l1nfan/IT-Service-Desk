@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItSlaRecordMapper">
+
+    <resultMap type="ItSlaRecord" id="ItSlaRecordResult">
+        <id     property="recordId"          column="record_id"          />
+        <result property="ticketId"          column="ticket_id"          />
+        <result property="slaConfigId"       column="sla_config_id"      />
+        <result property="slaStartTime"      column="sla_start_time"     />
+        <result property="responseDeadline"  column="response_deadline"  />
+        <result property="resolutionDeadline" column="resolution_deadline"/>
+        <result property="responseActual"    column="response_actual"    />
+        <result property="resolutionActual"  column="resolution_actual"  />
+        <result property="status"            column="status"             />
+        <result property="warningCount"      column="warning_count"      />
+        <result property="warningTime"       column="warning_time"       />
+        <result property="breachedTime"      column="breached_time"      />
+    </resultMap>
+
+    <sql id="selectSlaRecordVo">
+        select record_id, ticket_id, sla_config_id, sla_start_time, response_deadline,
+               resolution_deadline, response_actual, resolution_actual, status,
+               warning_count, warning_time, breached_time
+        from it_sla_record
+    </sql>
+
+    <select id="selectSlaRecordById" parameterType="Long" resultMap="ItSlaRecordResult">
+        <include refid="selectSlaRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <select id="selectSlaRecordByTicketId" parameterType="Long" resultMap="ItSlaRecordResult">
+        <include refid="selectSlaRecordVo"/>
+        where ticket_id = #{ticketId}
+    </select>
+
+    <select id="selectSlaRecordList" parameterType="ItSlaRecord" resultMap="ItSlaRecordResult">
+        <include refid="selectSlaRecordVo"/>
+        <where>
+            <if test="ticketId != null">and ticket_id = #{ticketId}</if>
+            <if test="slaConfigId != null">and sla_config_id = #{slaConfigId}</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by record_id desc
+    </select>
+
+    <select id="selectActiveSlaRecords" resultMap="ItSlaRecordResult">
+        <include refid="selectSlaRecordVo"/>
+        where status in ('NORMAL', 'WARNING')
+        order by sla_start_time
+    </select>
+
+    <insert id="insertSlaRecord" parameterType="ItSlaRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into it_sla_record (
+            <if test="ticketId != null">ticket_id,</if>
+            <if test="slaConfigId != null">sla_config_id,</if>
+            <if test="slaStartTime != null">sla_start_time,</if>
+            <if test="responseDeadline != null">response_deadline,</if>
+            <if test="resolutionDeadline != null">resolution_deadline,</if>
+            <if test="status != null and status != ''">status,</if>
+            warning_count
+        )values(
+            <if test="ticketId != null">#{ticketId},</if>
+            <if test="slaConfigId != null">#{slaConfigId},</if>
+            <if test="slaStartTime != null">#{slaStartTime},</if>
+            <if test="responseDeadline != null">#{responseDeadline},</if>
+            <if test="resolutionDeadline != null">#{resolutionDeadline},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            0
+        )
+    </insert>
+
+    <update id="updateSlaRecord" parameterType="ItSlaRecord">
+        update it_sla_record
+        <set>
+            <if test="slaConfigId != null">sla_config_id = #{slaConfigId},</if>
+            <if test="responseDeadline != null">response_deadline = #{responseDeadline},</if>
+            <if test="resolutionDeadline != null">resolution_deadline = #{resolutionDeadline},</if>
+            <if test="responseActual != null">response_actual = #{responseActual},</if>
+            <if test="resolutionActual != null">resolution_actual = #{resolutionActual},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="warningCount != null">warning_count = #{warningCount},</if>
+            <if test="warningTime != null">warning_time = #{warningTime},</if>
+            <if test="breachedTime != null">breached_time = #{breachedTime},</if>
+        </set>
+        where record_id = #{recordId}
+    </update>
+
+</mapper>

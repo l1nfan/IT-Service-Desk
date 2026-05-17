@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItTicketProcessLogMapper">
+
+    <resultMap type="ItTicketProcessLog" id="ItTicketProcessLogResult">
+        <id     property="logId"          column="log_id"          />
+        <result property="ticketId"       column="ticket_id"       />
+        <result property="action"         column="action"          />
+        <result property="actionName"     column="action_name"     />
+        <result property="content"        column="content"         />
+        <result property="fromStatus"     column="from_status"     />
+        <result property="toStatus"       column="to_status"       />
+        <result property="fromAssignee"   column="from_assignee"   />
+        <result property="toAssignee"     column="to_assignee"     />
+        <result property="workHours"      column="work_hours"      />
+        <result property="operatorId"     column="operator_id"     />
+        <result property="operatorName"   column="operator_name"   />
+        <result property="operateTime"    column="operate_time"    />
+    </resultMap>
+
+    <sql id="selectProcessLogVo">
+        select log_id, ticket_id, action, action_name, content,
+               from_status, to_status, from_assignee, to_assignee, work_hours,
+               operator_id, operator_name, operate_time
+        from it_ticket_process_log
+    </sql>
+
+    <select id="selectProcessLogById" parameterType="Long" resultMap="ItTicketProcessLogResult">
+        <include refid="selectProcessLogVo"/>
+        where log_id = #{logId}
+    </select>
+
+    <select id="selectProcessLogsByTicketId" parameterType="Long" resultMap="ItTicketProcessLogResult">
+        <include refid="selectProcessLogVo"/>
+        where ticket_id = #{ticketId}
+        order by operate_time desc
+    </select>
+
+    <insert id="insertProcessLog" parameterType="ItTicketProcessLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into it_ticket_process_log (
+            <if test="ticketId != null">ticket_id,</if>
+            <if test="action != null and action != ''">action,</if>
+            <if test="actionName != null and actionName != ''">action_name,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="fromStatus != null and fromStatus != ''">from_status,</if>
+            <if test="toStatus != null and toStatus != ''">to_status,</if>
+            <if test="fromAssignee != null">from_assignee,</if>
+            <if test="toAssignee != null">to_assignee,</if>
+            <if test="workHours != null">work_hours,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="operatorName != null and operatorName != ''">operator_name,</if>
+            operate_time
+        )values(
+            <if test="ticketId != null">#{ticketId},</if>
+            <if test="action != null and action != ''">#{action},</if>
+            <if test="actionName != null and actionName != ''">#{actionName},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="fromStatus != null and fromStatus != ''">#{fromStatus},</if>
+            <if test="toStatus != null and toStatus != ''">#{toStatus},</if>
+            <if test="fromAssignee != null">#{fromAssignee},</if>
+            <if test="toAssignee != null">#{toAssignee},</if>
+            <if test="workHours != null">#{workHours},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="operatorName != null and operatorName != ''">#{operatorName},</if>
+            sysdate()
+        )
+    </insert>
+
+</mapper>

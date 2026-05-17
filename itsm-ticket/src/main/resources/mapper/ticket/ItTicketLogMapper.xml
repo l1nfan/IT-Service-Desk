@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsm.ticket.mapper.ticket.ItTicketLogMapper">
+
+    <resultMap type="ItTicketLog" id="ItTicketLogResult">
+        <id     property="logId"        column="log_id"        />
+        <result property="ticketId"     column="ticket_id"     />
+        <result property="ticketNo"     column="ticket_no"     />
+        <result property="action"       column="action"        />
+        <result property="actionName"   column="action_name"   />
+        <result property="fromStatus"   column="from_status"   />
+        <result property="toStatus"     column="to_status"     />
+        <result property="operatorId"   column="operator_id"   />
+        <result property="operatorName" column="operator_name" />
+        <result property="comment"      column="comment"       />
+        <result property="operateTime"  column="operate_time"  />
+    </resultMap>
+
+    <sql id="selectLogVo">
+        select log_id, ticket_id, ticket_no, action, action_name, from_status, to_status,
+               operator_id, operator_name, comment, operate_time
+        from it_ticket_log
+    </sql>
+
+    <select id="selectLogsByTicketId" parameterType="Long" resultMap="ItTicketLogResult">
+        <include refid="selectLogVo"/>
+        where ticket_id = #{ticketId}
+        order by operate_time desc
+    </select>
+
+    <select id="selectLogList" parameterType="ItTicketLog" resultMap="ItTicketLogResult">
+        <include refid="selectLogVo"/>
+        <where>
+            <if test="ticketId != null">
+                AND ticket_id = #{ticketId}
+            </if>
+            <if test="action != null and action != ''">
+                AND action = #{action}
+            </if>
+            <if test="operatorId != null">
+                AND operator_id = #{operatorId}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                AND date_format(operate_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND date_format(operate_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by operate_time desc
+    </select>
+
+    <insert id="insertLog" parameterType="ItTicketLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into it_ticket_log (
+            <if test="ticketId != null">ticket_id,</if>
+            <if test="ticketNo != null and ticketNo != ''">ticket_no,</if>
+            <if test="action != null and action != ''">action,</if>
+            <if test="actionName != null and actionName != ''">action_name,</if>
+            <if test="fromStatus != null and fromStatus != ''">from_status,</if>
+            <if test="toStatus != null and toStatus != ''">to_status,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="operatorName != null and operatorName != ''">operator_name,</if>
+            <if test="comment != null and comment != ''">comment,</if>
+            operate_time
+        )values(
+            <if test="ticketId != null">#{ticketId},</if>
+            <if test="ticketNo != null and ticketNo != ''">#{ticketNo},</if>
+            <if test="action != null and action != ''">#{action},</if>
+            <if test="actionName != null and actionName != ''">#{actionName},</if>
+            <if test="fromStatus != null and fromStatus != ''">#{fromStatus},</if>
+            <if test="toStatus != null and toStatus != ''">#{toStatus},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="operatorName != null and operatorName != ''">#{operatorName},</if>
+            <if test="comment != null and comment != ''">#{comment},</if>
+            sysdate()
+        )
+    </insert>
+
+</mapper>
